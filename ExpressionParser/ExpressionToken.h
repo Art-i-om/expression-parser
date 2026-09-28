@@ -18,5 +18,12 @@ public:
     : func(f), type(ExpressionTokenType::FUNCTION), value(0) {}
 
     friend std::ostream& operator<<(std::ostream& os, const ExpressionToken& token);
+
+    [[nodiscard]] bool isNumber() const { return type == ExpressionTokenType::NUMBER; }
+    [[nodiscard]] bool compareType(const ExpressionTokenType& other) const { return type == other; }
+    [[nodiscard]] ExpressionTokenType getType() const { return type; }
+    [[nodiscard]] double getValue() const { return value; }
+
+    void setValue(const double& x) { value = x; }
 };
 

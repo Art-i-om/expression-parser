@@ -42,8 +42,8 @@ std::string Lexer::getWord(const std::string &expression, long long &index) {
 }
 
 void Lexer::tokenize(const std::string& expression,
-                     const std::map<std::string, std::function<double(std::vector<double>)>>& funcs,
-                     const std::map<std::string, double>& variables,
+                     const std::unordered_map<std::string, std::function<double(std::vector<double>)>>& funcs,
+                     const std::unordered_map<std::string, double>& variables,
                      std::vector<ExpressionToken>& tokens) {
     tokens.clear();
     const auto n = static_cast<long long>(expression.size());
@@ -119,5 +119,11 @@ void Lexer::tokenize(const std::string& expression,
 
                 throw LexError(std::string("unknown symbol '") + symbol + "' in expression");
         }
+    }
+}
+
+void Lexer::printTokens(const std::vector<ExpressionToken> &tokens) {
+    for (const auto& token : tokens) {
+        std::cout << token << "\n";
     }
 }

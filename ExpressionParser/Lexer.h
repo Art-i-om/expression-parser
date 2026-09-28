@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <functional>
 
 #include "ExpressionToken.h"
@@ -18,11 +18,13 @@ private:
 
 public:
     static void tokenize(const std::string& expression,
-        const std::map<std::string, std::function<double(std::vector<double>)>>& funcs,
-        const std::map<std::string, double>& variables,
+        const std::unordered_map<std::string, std::function<double(std::vector<double>)>>& funcs,
+        const std::unordered_map<std::string, double>& variables,
         std::vector<ExpressionToken>& tokens
         );
 
     static double getNumber(const std::string& expression, long long& index);
     static std::string getWord(const std::string& expression, long long& index);
+
+    static void printTokens(const std::vector<ExpressionToken>& tokens);
 };
