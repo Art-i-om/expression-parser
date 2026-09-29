@@ -18,8 +18,17 @@ std::string typeToString(ExpressionTokenType type) {
 std::ostream &operator<<(std::ostream &os, const ExpressionToken &token) {
     os << "TOKEN(" << typeToString(token.type);
 
-    if (token.type == ExpressionTokenType::NUMBER) {
+    if (token.compareType(ExpressionTokenType::NUMBER)) {
         os << ", " << token.value;
+    }
+    if (token.compareType(ExpressionTokenType::FUNCTION)) {
+        os << ", argCount = ";
+        if (token.argCount <= 0) {
+            os << "NOT SET";
+        }
+        else {
+            os << token.argCount;
+        }
     }
 
     os << ")";

@@ -1,5 +1,6 @@
 #include "Lexer.h"
 #include "ExpressionToken.h"
+#include "LexError.h"
 
 #include <charconv>
 #include <functional>
@@ -48,6 +49,8 @@ void Lexer::tokenize(const std::string& expression,
     tokens.clear();
     const auto n = static_cast<long long>(expression.size());
 
+    std::pair<int, int> count_parentheses_pairs;
+
     for (long long i = 0; i < n; i++) {
         const char symbol = expression[i];
         if (symbol == ' ') continue;
@@ -57,12 +60,15 @@ void Lexer::tokenize(const std::string& expression,
             case '-': tokens.emplace_back(ExpressionTokenType::SUBTRACT); break;
             case '*': tokens.emplace_back(ExpressionTokenType::MULTIPLY); break;
             case '/': tokens.emplace_back(ExpressionTokenType::DIVIDE); break;
-            case '(': tokens.emplace_back(ExpressionTokenType::LEFT_PAREN); break;
+            case '(': count_parentheses_pairs.first++;
+                tokens.emplace_back(ExpressionTokenType::LEFT_PAREN); break;
             case ',': tokens.emplace_back(ExpressionTokenType::COMMA); break;
 
             case ')':
+                count_parentheses_pairs.second++;
                 skipSpaces(expression, i);
                 tokens.emplace_back(ExpressionTokenType::RIGHT_PAREN);
+
                 if (i + 1 < n) {
                     const char next = expression[i + 1];
                     if (next == '(' || isalpha(static_cast<unsigned char>(next)) ||
@@ -119,6 +125,10 @@ void Lexer::tokenize(const std::string& expression,
 
                 throw LexError(std::string("unknown symbol '") + symbol + "' in expression");
         }
+    }
+
+    if (count_parentheses_pairs.first != count_parentheses_pairs.second) {
+        throw LexError("There are missing parentheses");
     }
 }
 

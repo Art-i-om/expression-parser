@@ -6,7 +6,6 @@
 #include <functional>
 
 #include "ExpressionToken.h"
-#include "LexError.h"
 
 class Lexer {
 private:

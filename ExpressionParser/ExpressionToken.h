@@ -4,11 +4,15 @@
 #include <vector>
 #include <string>
 
+#include "ExpressionParsError.h"
+
 class ExpressionToken {
 private:
     ExpressionTokenType type;
     double value;
+
     std::function<double(std::vector<double>)> func;
+    int argCount = 0;
 
 public:
     ExpressionToken(const ExpressionTokenType t, const double x) : type(t), value(x) {}
@@ -21,9 +25,34 @@ public:
 
     [[nodiscard]] bool isNumber() const { return type == ExpressionTokenType::NUMBER; }
     [[nodiscard]] bool compareType(const ExpressionTokenType& other) const { return type == other; }
+    [[nodiscard]] bool argsCountEmpty() const { return argCount <= 0; }
     [[nodiscard]] ExpressionTokenType getType() const { return type; }
     [[nodiscard]] double getValue() const { return value; }
+    [[nodiscard]] int getArgsCount() const { return argCount; }
+    [[nodiscard]] double applyFunction(const std::vector<double>& args) const {
+        if (compareType(ExpressionTokenType::FUNCTION)) {
+            return func(args);
+        }
 
-    void setValue(const double& x) { value = x; }
+        throw ExpressionParsError("applyFunction() is only accessible for functions");
+    }
+
+    void setValue(const double& x) {
+        if (compareType(ExpressionTokenType::NUMBER)) {
+            value = x;
+            return;
+        }
+
+        throw ExpressionParsError("setValue() only works with numbers");
+    }
+    void setArgCount(const int& cnt) {
+        if (compareType(ExpressionTokenType::FUNCTION)) {
+            argCount = cnt;
+            return;
+        }
+
+        throw ExpressionParsError("setArgCount() only works with functions");
+    }
+    void decreaseArgsCount() { argCount--; }
 };
 
