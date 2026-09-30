@@ -6,6 +6,8 @@
 
 #include "ExpressionParsError.h"
 
+std::string typeToString(ExpressionTokenType type);
+
 class ExpressionToken {
 private:
     ExpressionTokenType type;
