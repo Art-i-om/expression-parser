@@ -31,7 +31,6 @@ int ExpressionParser::precedence(const ExpressionTokenType& type) {
 }
 
 bool ExpressionParser::isRightAssociative(const ExpressionTokenType &type) {
-    // TODO: extend it for more operators (like powers)
     return type == ExpressionTokenType::UNARY_MINUS ||
         type == ExpressionTokenType::UNARY_PLUS ||
             type == ExpressionTokenType::POWER;
