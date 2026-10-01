@@ -63,6 +63,7 @@ void Lexer::tokenize(const std::string& expression,
             case '(': count_parentheses_pairs.first++;
                 tokens.emplace_back(ExpressionTokenType::LEFT_PAREN); break;
             case ',': tokens.emplace_back(ExpressionTokenType::COMMA); break;
+            case '^': tokens.emplace_back(ExpressionTokenType::POWER); break;
 
             case ')':
                 count_parentheses_pairs.second++;

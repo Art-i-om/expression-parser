@@ -29,13 +29,15 @@ private:
     };
     const std::unordered_map<std::string, double> variables = {
         {"pi", std::numbers::pi_v<long double>},
-        {"x", 3},
-        {"y", 4},
-        {"z", 42},
+        {"answer", 42},
+        {"x", 1},
+        {"y", 2},
+        {"z", 3},
     };
 
     void flushToLeftParen();
     static int precedence(const ExpressionTokenType& type);
+    static bool isRightAssociative(const ExpressionTokenType& type);
 
     void shuntingYardAlgorithm();
     double generateResult();

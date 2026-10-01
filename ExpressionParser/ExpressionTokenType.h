@@ -9,5 +9,8 @@ enum class ExpressionTokenType {
     LEFT_PAREN,
     RIGHT_PAREN,
     FUNCTION,
-    COMMA
+    COMMA,
+    UNARY_MINUS,
+    UNARY_PLUS,
+    POWER
 };

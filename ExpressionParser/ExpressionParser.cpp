@@ -19,9 +19,22 @@ int ExpressionParser::precedence(const ExpressionTokenType& type) {
         case ExpressionTokenType::MULTIPLY:
         case ExpressionTokenType::DIVIDE:
             return 2;
+        case ExpressionTokenType::UNARY_MINUS:
+        case ExpressionTokenType::UNARY_PLUS:
+            return 3;
+        case ExpressionTokenType::POWER:
+            return 4;
         default:
+            // return 0;
             throw ExpressionParsError("There is no precedence for type " + typeToString(type));
     }
+}
+
+bool ExpressionParser::isRightAssociative(const ExpressionTokenType &type) {
+    // TODO: extend it for more operators (like powers)
+    return type == ExpressionTokenType::UNARY_MINUS ||
+        type == ExpressionTokenType::UNARY_PLUS ||
+            type == ExpressionTokenType::POWER;
 }
 
 void ExpressionParser::shuntingYardAlgorithm() {
@@ -70,19 +83,32 @@ void ExpressionParser::shuntingYardAlgorithm() {
             expectOperand = false;
         }
         else {
-            if (expectOperand) throw ExpressionParsError("unexpected operator - missing left operand?");
+            auto filteredToken = token;
+            if (expectOperand && token.compareType(ExpressionTokenType::SUBTRACT)) {
+                filteredToken.setType(ExpressionTokenType::UNARY_MINUS);
+            }
+            else if (expectOperand && token.compareType(ExpressionTokenType::ADD)) {
+                filteredToken.setType(ExpressionTokenType::UNARY_PLUS);
+            }
+            else if (expectOperand) throw ExpressionParsError("unexpected operator - missing left operand?");
 
             while (!operatorStack.empty()) {
                 const ExpressionToken& op = operatorStack.back();
-                if (op.compareType(ExpressionTokenType::LEFT_PAREN) ||
-                    precedence(token.getType()) > precedence(op.getType())) {
+
+                if (op.compareType(ExpressionTokenType::LEFT_PAREN)) break;
+
+                const bool higherPrecedence = precedence(op.getType()) > precedence(filteredToken.getType());
+                const bool tiedAndLeftAssoc = precedence(op.getType()) == precedence(filteredToken.getType()) &&
+                    !isRightAssociative(filteredToken.getType());
+
+                if (!(higherPrecedence || tiedAndLeftAssoc)) {
                     break;
                 }
 
                 output.push_back(op);
                 operatorStack.pop_back();
             }
-            operatorStack.push_back(token);
+            operatorStack.push_back(filteredToken);
             expectOperand = true;
         }
     }
@@ -98,13 +124,13 @@ void ExpressionParser::shuntingYardAlgorithm() {
 double ExpressionParser::generateResult() {
     std::deque<ExpressionToken> result;
     while (!output.empty()) {
-        auto elem = output.front();
+        auto token = output.front();
         output.pop_front();
-        if (elem.isNumber()) {
-            result.push_back(elem);
+        if (token.isNumber()) {
+            result.push_back(token);
         }
-        else if (elem.compareType(ExpressionTokenType::FUNCTION)) {
-            const size_t n = elem.getArgsCount();
+        else if (token.compareType(ExpressionTokenType::FUNCTION)) {
+            const size_t n = token.getArgsCount();
             if (result.size() < n) throw ExpressionParsError("not enough arguments for function call");
 
             std::vector<double> args;
@@ -114,9 +140,19 @@ double ExpressionParser::generateResult() {
             }
             result.erase(result.end() - n, result.end());
 
-            double funcResult = elem.applyFunction(args);
+            double funcResult = token.applyFunction(args);
             auto resultToken = ExpressionToken(funcResult);
             result.push_back(resultToken);
+        }
+        else if (token.compareType(ExpressionTokenType::UNARY_MINUS)) {
+            if (result.empty()) throw ExpressionParsError("missing operand");
+            auto operand = result.back(); result.pop_back();
+            result.emplace_back(-operand.getValue());
+        }
+        else if (token.compareType(ExpressionTokenType::UNARY_PLUS)) {
+            if (result.empty()) throw ExpressionParsError("missing operand");
+            auto operand = result.back(); result.pop_back();
+            result.emplace_back(operand.getValue());
         }
         else {
             if (result.size() < 2) throw ExpressionParsError("missing operand");
@@ -125,7 +161,7 @@ double ExpressionParser::generateResult() {
 
             auto resultToken = ExpressionToken(ExpressionTokenType::NUMBER);
 
-            switch (elem.getType()) {
+            switch (token.getType()) {
                 case ExpressionTokenType::ADD:
                     resultToken.setValue(left.getValue() + right.getValue());
                     break;
@@ -137,6 +173,9 @@ double ExpressionParser::generateResult() {
                     break;
                 case ExpressionTokenType::DIVIDE:
                     resultToken.setValue(left.getValue() / right.getValue());
+                    break;
+                case ExpressionTokenType::POWER:
+                    resultToken.setValue(pow(left.getValue(), right.getValue()));
                     break;
                 default:
                     throw ExpressionParsError("Invalid expression token type for binary operations");
@@ -151,6 +190,11 @@ double ExpressionParser::generateResult() {
 }
 
 double ExpressionParser::evaluate(const std::string &expression) {
+    output.clear();
+    operatorStack.clear();
+    argsCount.clear();
+    tokens.clear();
+
     Lexer::tokenize(expression, funcs, variables, tokens);
 
     shuntingYardAlgorithm();

@@ -39,6 +39,15 @@ public:
         throw ExpressionParsError("applyFunction() is only accessible for functions");
     }
 
+    void setType(const ExpressionTokenType& t) {
+        if (!compareType(ExpressionTokenType::NUMBER)) {
+            type = t;
+            return;
+        }
+
+        throw ExpressionParsError("Cannot change token type if it is already a number");
+    }
+
     void setValue(const double& x) {
         if (compareType(ExpressionTokenType::NUMBER)) {
             value = x;
