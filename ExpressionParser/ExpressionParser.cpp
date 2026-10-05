@@ -137,7 +137,7 @@ double ExpressionParser::generateResult() {
             for (size_t i = result.size() - n; i < result.size(); i++) {
                 args.push_back(result[i].getValue());
             }
-            result.erase(result.end() - n, result.end());
+            result.erase(result.end() - static_cast<long long>(n), result.end());
 
             double funcResult = token.applyFunction(args);
             auto resultToken = ExpressionToken(funcResult);
